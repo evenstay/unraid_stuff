@@ -1,0 +1,48 @@
+#!/bin/bash
+
+#Archived Paths
+directoryPath="/mnt/user/videos"
+versionsPath="${directoryPath}/.stversions"
+newRunPath="${versionsPath}/newrun.txt"
+deletedPath="${versionsPath}/deleted.txt"
+lines=0
+
+#Remove non-video files
+find "${versionsPath}" -type f -name '*.nfo' -o -name '*.nfo-orig' -o -name '*.srt' -o -name '*.xml' -o -name '*.jpg' -o -name '*.tbn' -delete
+find "${versionsPath}" -empty -type d -delete
+
+notificationSubject="Videos checked"
+
+find "${versionsPath}" -print -type f -exec file -N -i -- {} + | sed -n 's!: video/[^:]*$!!p' > $newRunPath
+
+rm -rf $deletedPath
+
+IFS=/ read -ra stdir <<< "$versionsPath"
+dLen=${#stdir[@]}
+
+while read -r path; do
+    IFS=/ read -ra dir <<< "$path"
+    folderPath="$directoryPath/${dir[$dLen]}/"
+    if [ $(find "${folderPath}" -type f -name '*.mkv' -o -name '*.m4v' -o -name '*.mp4' -o -name '*.avi' | wc -l) -gt 0 ]
+    then 
+        echo "Replacement found in ${folderPath}"
+    else
+        echo "${folderPath}" >> $deletedPath
+        ((lines++)) 
+    fi
+done < $newRunPath
+
+if [ lines -eq 0 ]
+then
+    notificationMessage="It seems there weren't any deletions."    
+else
+    notificationMessage="There appear to be $lines file(s) missing. You should probably check ${deletedPath}"
+fi
+
+rm -rf $newRunPath
+
+send_notification(){
+    /usr/local/emhttp/webGui/scripts/notify -e "unRaid" -s "$1" -d "$2" -i "normal" 
+}
+
+send_notification "$notificationSubject" "$notificationMessage"
