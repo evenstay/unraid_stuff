@@ -13,9 +13,10 @@ find "${versionsPath}" -empty -type d -delete
 
 notificationSubject="Videos checked"
 
-find "${versionsPath}" -print -type f -exec file -N -i -- {} + | sed -n 's!: video/[^:]*$!!p' > $newRunPath
-
+rm -rf $newRunPath
 rm -rf $deletedPath
+
+find "${versionsPath}" -print -type f -exec file -N -i -- {} + | sed -n 's!: video/[^:]*$!!p' > $newRunPath
 
 IFS=/ read -ra stdir <<< "$versionsPath"
 dLen=${#stdir[@]}
@@ -32,17 +33,12 @@ while read -r path; do
     fi
 done < $newRunPath
 
-if [ lines -eq 0 ]
+if [[ lines -gt 0 ]]
 then
-    notificationMessage="It seems there weren't any deletions."    
-else
     notificationMessage="There appear to be $lines file(s) missing. You should probably check ${deletedPath}"
+    send_notification "$notificationSubject" "$notificationMessage"
 fi
-
-rm -rf $newRunPath
 
 send_notification(){
     /usr/local/emhttp/webGui/scripts/notify -e "unRaid" -s "$1" -d "$2" -i "normal" 
 }
-
-send_notification "$notificationSubject" "$notificationMessage"
