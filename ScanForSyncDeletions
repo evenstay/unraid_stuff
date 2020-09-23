@@ -33,8 +33,10 @@ while read -r path; do
     fi
 done < $newRunPath
 
-if [[ lines -gt 0 ]]
+if [[ lines -eq 0 ]]
 then
+    echo "no deletions found"
+else
     notificationMessage="There appear to be $lines file(s) missing. You should probably check ${deletedPath}"
     send_notification "$notificationSubject" "$notificationMessage"
 fi

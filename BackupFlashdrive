@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#--DEFINE VARIABLES--#
 # Set Flashdrive Backup Directory
 flashbackupDirectory='/PATH/TO/YOUR/BACKUP/DIRECTORY/'
 
