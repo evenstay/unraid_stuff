@@ -32,7 +32,7 @@ while read -r path; do
         echo "Replacement found in ${folderPath}"
     else
         echo "${folderPath}" >> $deletedPath
-        (($lines++)) 
+        ((lines++))
     fi
 done < $newRunPath
 
